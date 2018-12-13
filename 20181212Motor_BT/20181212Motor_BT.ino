@@ -243,6 +243,7 @@ void loop()
   constrain(nowDist, 0, 100);
   //  Serial.print("現在距離：");
   //  Serial.println(nowDist);
+  
   //設定前進與停車變數
   if (ledState == 1)
   {
