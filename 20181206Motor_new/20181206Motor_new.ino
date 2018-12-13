@@ -1,15 +1,13 @@
-#include <SoftwareSerial.h>
 #include <Servo.h>
 Servo S1;
-SoftwareSerial bt(7, 8);
 
 int servoPin = 2;
 int RmotorGo = 3;
 int RmotorBk = 5;
 int LmotorGo = 6;
 int LmotorBk = 11;
-int rSpeed = 100;
-int lSpeed = 120;
+int rSpeed = 80;
+int lSpeed = 100;
 int trig = 9;
 int echo = 10;
 
@@ -21,7 +19,6 @@ void setup() {
   pinMode(trig, OUTPUT);
   pinMode(echo, INPUT);
   S1.attach(servoPin);
-  bt.begin(38400);
   Serial.begin(38400);
   while (!Serial)
   {
@@ -64,7 +61,7 @@ void cBack()
   digitalWrite(LmotorBk, HIGH);
   analogWrite(LmotorBk, lSpeed);
   analogWrite(LmotorGo, 0);
-  delay(250);
+  delay(100);
 }
 
 void cStop()
@@ -133,27 +130,44 @@ float dist()
   return pulseIn(echo, HIGH) / 58.2;
 }
 
-void check()
+void servoTurn(int angle)
 {
-  cStop();
-  delay(100);
-  cBack();
-  delay(100);
+  int nowAngle = S1.read();
+  if (nowAngle > angle)
+  {
+    for (int i = nowAngle; i >= angle; i--)
+    {
+      S1.write(i);
+      delay(10);
+    }
+  }
+  else
+  {
+    for (int i = nowAngle; i <= angle; i++)
+    {
+      S1.write(i);
+      delay(10);
+    }
+  }
+}
 
-  S1.write(0);
-  float distR = dist();
-  delay(250);
-  S1.write(180);
-  float distL = dist();
-  delay(250);
-  S1.write(90);
+void check() {
+  cStop();
+  float distR;
+  float distL;
+  servoTurn(0);
+  distR = dist();
+  delay(200);
+  servoTurn(180);
+  distL = dist();
+  delay(200);
+  servoTurn(90);
 
   Serial.print("右邊距離：");
   Serial.print(distR);
   Serial.print("  左邊距離：");
   Serial.println(distL);
-  
-  if (distR < 25 && distL < 25)
+ if (distR < 20 && distL < 20)
   {
     cBack();
     delay(200);
@@ -177,7 +191,7 @@ void loop() {
   float nowDist = dist();
   Serial.print("現在距離：");
   Serial.println(nowDist);
-  if (nowDist > 25)
+  if (nowDist > 20)
     cGo();
   else
     check();
