@@ -249,7 +249,7 @@ void loop()
         cStop();
     }
     else
-      cGo;
+      cGo();
   }
 
   Serial.print("rSensor:");

@@ -52,7 +52,7 @@ void setup() {
   }
 }
 
-void cGo(i)
+void cGo(int i)
 {
   digitalWrite(RmotorGo, HIGH);
   analogWrite(RmotorGo, rSpeed * i);
@@ -62,7 +62,7 @@ void cGo(i)
   analogWrite(LmotorBk, 0);
 }
 
-void cBack(i)
+void cBack(int i)
 {
   digitalWrite(RmotorBk, HIGH);
   analogWrite(RmotorBk, rSpeed);
@@ -80,7 +80,7 @@ void cStop()
   analogWrite(LmotorBk, 0);
 }
 
-void turnL(i)
+void turnL(int i)
 {
   digitalWrite(RmotorGo, HIGH);
   analogWrite(RmotorGo, rSpeed * i);
@@ -90,7 +90,7 @@ void turnL(i)
   analogWrite(LmotorBk, 0);
 }
 
-void turnR(i)
+void turnR(int i)
 {
   digitalWrite(RmotorGo, LOW);
   analogWrite(RmotorGo, 0);
@@ -100,7 +100,7 @@ void turnR(i)
   analogWrite(LmotorBk, 0);
 }
 
-void turnLF(i, j)
+void turnLF(int i,int j)
 {
   digitalWrite(RmotorGo, HIGH);
   analogWrite(RmotorGo, rSpeed * i);
@@ -110,7 +110,7 @@ void turnLF(i, j)
   analogWrite(LmotorBk, 0);
 }
 
-void turnRF(i, j)
+void turnRF(int i,int j)
 {
   digitalWrite(RmotorGo, HIGH);
   analogWrite(RmotorGo, rSpeed * i);
@@ -119,7 +119,7 @@ void turnRF(i, j)
   analogWrite(LmotorGo, lSpeed * j);
   analogWrite(LmotorBk, 0);
 }
-void spinL(i)
+void spinL(int i)
 {
   digitalWrite(RmotorGo, HIGH);
   digitalWrite(RmotorBk, LOW);
@@ -131,7 +131,7 @@ void spinL(i)
   analogWrite(LmotorGo, 0);
 }
 
-void spinR(i)
+void spinR(int i)
 {
   digitalWrite(LmotorGo, HIGH);
   digitalWrite(LmotorBk, LOW);
@@ -261,7 +261,7 @@ void loop()
 {
   time = millis();
   int rPass = 0;
-  int lpass = 0;
+  int lPass = 0;
   int rSensor = analogRead(A4);
   int lSensor = analogRead(A5);
 
