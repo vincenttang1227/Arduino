@@ -10,9 +10,11 @@ int RmotorBk = 5;
 int LmotorGo = 6;
 int LmotorBk = 11;
 int servoP = 9;
-int cState = 0;
 float dist;
+int cState = 0;
+int ledState = 0;
 int cDirect = 0;
+int cSpeed = 200;
 int lTracer = A4;
 int rTracer = A5;
 
@@ -36,8 +38,6 @@ void setup() {
     ;
   }
   Serial.println("BT Start");
-  analogWrite(A0, 1024);
-  analogWrite(A1, 0);
 }
 
 void turnServo(Servo S, int angle) {
@@ -70,7 +70,7 @@ void cGo(int cTime, int pwm) {
   digitalWrite(LmotorGo, HIGH);
   digitalWrite(LmotorBk, LOW);
   analogWrite(RmotorGo, pwm);
-  analogWrite(LmotorGo, pwm * 1.14);
+  analogWrite(LmotorGo, pwm * 1.3);
   delay(cTime);
 }
 
@@ -80,7 +80,7 @@ void cBack(int cTime, int pwm) {
   digitalWrite(LmotorGo, LOW);
   digitalWrite(LmotorBk, HIGH);
   analogWrite(RmotorBk, pwm);
-  analogWrite(LmotorBk, pwm * 1.14);
+  analogWrite(LmotorBk, pwm * 1.2);
   delay(cTime);
 }
 
@@ -115,7 +115,7 @@ void turnFR(int cTime, int pwm) {
   digitalWrite(RmotorBk, LOW);
   digitalWrite(LmotorGo, HIGH);
   digitalWrite(LmotorBk, LOW);
-  analogWrite(RmotorGo, pwm / 2);
+  analogWrite(RmotorGo, pwm / 3.5);
   analogWrite(LmotorGo, pwm);
   delay(cTime);
 }
@@ -126,7 +126,7 @@ void turnFL(int cTime, int pwm) {
   digitalWrite(LmotorGo, HIGH);
   digitalWrite(LmotorBk, LOW);
   analogWrite(RmotorGo, pwm);
-  analogWrite(LmotorGo, pwm / 2);
+  analogWrite(LmotorGo, pwm / 3.5);
   delay(cTime);
 }
 
@@ -150,37 +150,38 @@ void spinL(int cTime, int pwm) {
   delay(cTime);
 }
 
-void freeStyle() {
+void freeStyle(int cs) {
   for (int i = 0; i < 5; i++) {
-    cGo(250, 255);
+    cGo(250, cs);
     delay(250);
   }
   cStop(0, 0);
   for (int i = 0; i < 5; i++) {
-    cBack(250, 255);
+    cBack(250, cs);
     delay(250);
   }
   cStop(0, 0);
   for (int i = 0; i < 5; i++) {
-    turnFL(250, 255);
+    turnFL(250, cs);
     delay(250);
   }
   cStop(0, 0);
   for (int i = 0; i < 5; i++) {
-    turnFR(250, 255);
+    turnFR(250, cs);
     delay(250);
   }
   cStop(0, 0);
   for (int i = 0; i < 5; i++) {
-    spinL(250, 255);
+    spinL(250, cs);
     delay(250);
   }
   cStop(0, 0);
   for (int i = 0; i < 5; i++) {
-    spinR(250, 255);
+    spinR(250, cs);
     delay(250);
   }
   cStop(0, 0);
+  cState = 0;
 }
 
 void cAvoid() {
@@ -188,11 +189,11 @@ void cAvoid() {
   dist = constrain(dist, 0, 80);
 
   if (dist > 25) {
-    analogWrite(A1, 0);
     cGo(50, 120);
   }
   else {
-    analogWrite(A1, 512);
+    analogWrite(A2, 512);
+    analogWrite(A3, 512);
     cStop(0, 0);
     turnServo(S1, 0);
     delay(250);
@@ -208,47 +209,75 @@ void cAvoid() {
     else if (rDist > lDist) {
       cBack(500, 150);
       cStop(200, 0);
-      turnR(250, 150);
+      turnR(500, 150);
     }
     else if (rDist < lDist) {
       cBack(500, 150);
       cStop(200, 0);
-      turnL(250, 150);
+      turnL(500, 150);
     }
   }
 }
 
-void carBT() {
-  if (cDirect == 1)
-    spinL(50, 120);
-  else if (cDirect == 2)
-    cGo(50, 120);
-  else if (cDirect == 3)
-    spinR (50, 120);
-  else if (cDirect == 4)
-    turnL(50, 120);
+void carBT(int i) {
+  analogWrite(A2, 512);
+  if (cDirect == 2)
+    cGo(50, i);
+  else if (cDirect == 4) {
+    analogWrite(A0, 512);
+    analogWrite(A1, 0);
+    turnL(50, i);
+  }
   else if (cDirect == 5)
     cStop(0, 0);
-  else if (cDirect == 6)
-    turnR(50, 120);
+  else if (cDirect == 6) {
+    analogWrite(A0, 0);
+    analogWrite(A1, 512);
+    turnR(50, i);
+  }
+  else if (cDirect == 7) {
+    analogWrite(A0, 512);
+    analogWrite(A1, 0);
+    spinL(50, i);
+  }
   else if (cDirect == 8)
-    cBack(50, 120);
+    cBack(50, i);
+  else if (cDirect == 9) {
+    analogWrite(A0, 0);
+    analogWrite(A1, 512);
+    spinR (50, i);
+  }
 }
 
-void tracer() {
+void tracer(int i) {
   int lT = analogRead(lTracer);
   int rT = analogRead(rTracer);
-  int cSpeed = 200;
   unsigned long time1, time2;
 
-  if (lT < 500 && rT < 500)
-    cGo(50, cSpeed);
-  else if (lT > 500 && rT < 500)
-    turnL(50, cSpeed);
-  else if (lT < 500 && rT > 500)
-    turnR(50, cSpeed);
-  else if (lT < 500 && rT < 500)
-    cBack(50, cSpeed);
+  if (lT < 500 && rT < 500) {
+    analogWrite(A0, 0);
+    analogWrite(A1, 0);
+    analogWrite(A2, 512);
+    cGo(50, i);
+  }
+  else if (lT > 500 && rT < 500) {
+    analogWrite(A0, 0);
+    analogWrite(A1, 512);
+    analogWrite(A2, 512);
+    turnFL(50, i*1.2);
+  }
+  else if (lT < 500 && rT > 500) {
+    analogWrite(A0, 512);
+    analogWrite(A1, 0);
+    analogWrite(A2, 512);
+    turnFR (50, i*0.8);
+  }
+  else if (lT > 500 && rT > 500) {
+    analogWrite(A0, 0);
+    analogWrite(A1, 0);
+    analogWrite(A2, 0);
+    cStop(0, 0);
+  }
   cStop(0, 0);
 }
 
@@ -258,36 +287,56 @@ void loop() {
     if (value != 0)
       cState = value;
   }
-
   if (bt.available() > 0) {
     char ch = bt.read();
     int num = bt.parseInt();
 
-    if (ch == 'B') {
-      cState = num;
-      cDirect = 0;
-      cStop(0, 0);
-    }
-    if (cState == 3) {
-      if (ch == 'C')
-        cDirect = num;
+    if (ch == 'C' && num == 1)
+      ledState = 1;
+    if (ch == 'C' && num == 3)
+      ledState = 0;
+
+    if (ledState == 1)
+      analogWrite(A2, 512);
+    else
+      analogWrite(A2, 0);
+
+    if (ledState == 1) {
+      if (ch == 'B') {
+        cState = num;
+        cDirect = 0;
+        cStop(0, 0);
+        analogWrite(A0, 0);
+        analogWrite(A1, 0);
+        analogWrite(A2, 512);
+      }
+
+      if (cState == 3) {
+        if (ch == 'C')
+          cDirect = num;
+      }
+
+      if (cState == 1 || cState == 3) {
+        if (ch == 'S')
+          cSpeed = num;
+      }
     }
     Serial.print(ch);
     Serial.println(num);
-  }
 
+  }
   switch (cState) {
     case 1:
-      freeStyle();
+      freeStyle(cSpeed);
       break;
     case 2:
       cAvoid();
       break;
     case 3:
-      carBT();
+      carBT(cSpeed);
       break;
     case 4:
-      tracer();
+      tracer(cSpeed);
       break;
     default:
       break;
